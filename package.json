@@ -1,0 +1,9 @@
+{
+  "name": "pong",
+  "author": "vastnebula.com",
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter './packages/*' run dev",
+    "dev-server": "pnpm --filter 'server' run dev",
+    "dev-ui": "pnpm --filter 'ui' run dev"
+  }
+}
