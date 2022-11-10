@@ -1,0 +1,103 @@
+syntax = "proto3";
+package pong;
+
+option go_package = "/pb";
+
+message Size {
+    int32 width = 1;
+    int32 height = 2;
+}
+
+message Point {
+    int32 x = 1;
+    int32 y = 2;
+}
+
+message Velocity {
+    sint32 vx = 1;
+    sint32 vy = 2;
+}
+
+message Score {
+    uint32 value = 1;
+}
+
+message ScoreUpdate {
+    Score leftScore = 1;
+    Score rightScore = 2;
+}
+
+enum UserInput {
+    START_GAME = 0;
+    PAUSE_GAME = 1;
+    LEFT_UP = 2;
+    LEFT_DOWN = 3;
+    RIGHT_UP = 4;
+    RIGHT_DOWN = 5;
+    STOP_LEFT_UP = 6;
+    STOP_LEFT_DOWN = 7;
+    STOP_RIGHT_UP = 8;
+    STOP_RIGHT_DOWN = 9;
+    RESET_GAME = 10;
+}
+
+message UserAction {
+    int32 request = 1;
+    UserInput userInput = 2;
+}
+
+enum GameState {
+    MENU_STATE = 0;
+    PLAY_STATE = 1;
+    PAUSE_STATE = 2;
+    STOP_STATE = 3;
+}
+
+message Ball {
+    Point point = 1;
+    Velocity velocity = 2;
+    int32 radius = 3;
+}
+
+message Paddle {
+    Point point = 1;
+    Velocity velocity = 2;
+    Size size = 3;
+    int32 ay = 4;
+}
+
+message Game {
+    GameState state = 1;
+	Ball ball = 2;
+	Paddle leftPaddle = 3;
+	Paddle rightPaddle = 4;
+	Score leftScore = 5;
+	Score rightScore = 6;
+	Size screenSize = 7;
+}
+
+message ObjectState {
+    Point position = 1;
+    Velocity velocity = 2;
+}
+
+message PlayerState {
+    int32 lastRequest = 1;
+    ObjectState state = 2;
+}
+
+message StateUpdate {
+    GameState state = 1;
+    ObjectState ball = 2;
+    PlayerState leftPaddle = 3;
+    PlayerState rightPaddle = 4;
+    ScoreUpdate score = 5;
+}
+
+message Message {
+    oneof content {
+        Game config = 2;
+        StateUpdate stateUpdate = 3;
+        UserAction userAction = 4;
+    }
+}

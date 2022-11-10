@@ -1,0 +1,7 @@
+{
+  "name": "protobuf",
+  "scripts": {
+    "compile-server": "protoc -I='.' --go_out=../../apps/server pong.proto",
+    "compile":"pnpm run compile-server"
+  }
+}
