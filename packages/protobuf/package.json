@@ -1,7 +1,15 @@
 {
   "name": "protobuf",
+  "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "compile-server": "protoc -I='.' --go_out=../../apps/server pong.proto",
-    "compile":"pnpm run compile-server"
+    "compile-web-static": "pnpm pbjs -t static-module -w es6 -o index.js pong.proto",
+    "compile-web-types": "pbts -o index.d.ts index.js",
+    "compile": "pnpm run compile-server && pnpm run compile-web-static && pnpm run compile-web-types"
+  },
+  "devDependencies": {
+    "protobufjs": "~7.1.2",
+    "protobufjs-cli": "~1.0.2"
   }
 }

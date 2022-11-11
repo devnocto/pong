@@ -1,6 +1,7 @@
 # Pong Protocol Buffers
 
-Defines the binary data format for transfer between server and client.
+The `pong.proto` file defines the binary data format for transfer between server and client.
+This package exports the compiled file, `index.js`, and types, `index.d.ts`, for use in JavaScript/Typescript.
 
 ## Requirements
 
