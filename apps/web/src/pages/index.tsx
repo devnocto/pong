@@ -1,5 +1,6 @@
 import { Dialog, Transition } from '@headlessui/react';
 import Head from "next/head";
+import { pong } from 'protobuf';
 import { Fragment, useState } from 'react';
 import IconSpinner from '../components/IconSpinner';
 
@@ -31,12 +32,12 @@ export default function Home() {
     const socket = new WebSocket(url);
     socket.binaryType = "arraybuffer";
 
-    socket.onopen = (event) => {
+    socket.onopen = (_event) => {
       setIsLoading(false);
       setIsOpen(false);
     };
 
-    socket.onerror = (event) => {
+    socket.onerror = (_event) => {
       setIsLoading(false);
       setPongError(PongErrors.WebSocketConnectionError);
       setIsOpen(true);
@@ -44,7 +45,8 @@ export default function Home() {
 
     socket.onmessage = (event) => {
       const payload: ArrayBuffer = event.data;
-      console.log(payload);
+      const message = pong.Message.decode(new Uint8Array(payload))
+      console.log(message)
     };
   };
 
