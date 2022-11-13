@@ -67,6 +67,10 @@ func (s *Server) wsHandler(w http.ResponseWriter, r *http.Request) {
 	c.Listen() // Setup client listeners
 }
 
+func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 // Run starts game and the server.
 func (s *Server) Run() {
 	// Run the game
@@ -77,6 +81,9 @@ func (s *Server) Run() {
 
 	// Handle connections to the websocket
 	http.HandleFunc("/websocket", s.wsHandler)
+
+	// Health check route
+	http.HandleFunc("/healthcheck", s.healthHandler)
 
 	// Start server
 	fmt.Println("server listening on port", s.Port)
