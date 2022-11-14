@@ -2,8 +2,11 @@ import Head from "next/head";
 import { useState } from "react";
 import BtnPrimary from "../components/BtnPrimary";
 import Game from "../components/Game";
+import { IconSpinner } from "../components/Icons";
+import { useServerStatus } from "../hooks/useServerStatus";
 
 export default function Home() {
+  const { isSuccess, isLoading } = useServerStatus();
   const [start, setStart] = useState(false);
 
   return (
@@ -22,7 +25,9 @@ export default function Home() {
           <p className="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">
             Play pong online.
           </p>
-          {!start ? <BtnPrimary label="Start game" onClick={() => setStart(true)} /> : <Game />}
+          {!isSuccess && <p className="font-light text-gray-500 dark:text-gray-400 flex">Server is offline</p>}
+          {isLoading && <IconSpinner className="w-6 h-6 animate-spin mt-6 text-gray-500 dark:text-gray-400" />}
+          {isSuccess && (!start ? <BtnPrimary label="Start game" onClick={() => setStart(true)} /> : <Game />)}
         </div>
       </main>
     </>
