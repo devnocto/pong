@@ -1,33 +1,20 @@
-// Enum for user input, corresponding with protobuf implementation
-enum UserInput {
-  Start,
-  Pause,
-  LeftUp,
-  LeftDown,
-  RightUp,
-  RightDown,
-  StopLeftUp,
-  StopLeftDown,
-  StopRightUp,
-  StopRightDown,
-  Reset,
-}
+import { pong } from "protobuf";
 
 // Maps the pressed & released keys with the respective user input
 export const Keymap = {
   keydown: {
-    KeyW: UserInput.LeftUp,
-    KeyS: UserInput.LeftDown,
-    ArrowUp: UserInput.RightUp,
-    ArrowDown: UserInput.RightDown,
-    KeyM: UserInput.Reset,
-    KeyP: UserInput.Pause,
-    KeyN: UserInput.Start,
+    KeyW: pong.UserInput.LEFT_UP,
+    KeyS: pong.UserInput.LEFT_DOWN,
+    ArrowUp: pong.UserInput.RIGHT_UP,
+    ArrowDown: pong.UserInput.RIGHT_DOWN,
+    KeyM: pong.UserInput.RESET_GAME,
+    KeyP: pong.UserInput.PAUSE_GAME,
+    KeyN: pong.UserInput.START_GAME,
   },
   keyup: {
-    KeyW: UserInput.StopLeftUp,
-    KeyS: UserInput.StopLeftDown,
-    ArrowUp: UserInput.StopRightUp,
-    ArrowDown: UserInput.StopRightDown,
+    KeyW: pong.UserInput.STOP_LEFT_UP,
+    KeyS: pong.UserInput.STOP_LEFT_DOWN,
+    ArrowUp: pong.UserInput.STOP_RIGHT_UP,
+    ArrowDown: pong.UserInput.STOP_RIGHT_DOWN,
   },
 };
