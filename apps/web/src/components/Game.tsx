@@ -1,18 +1,12 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { pong } from "protobuf";
+import { useConfig } from "../hooks/useConfig";
 import { useWebSocketConnection } from "../hooks/useWebSocketConnection";
-import { fetchFromCache } from "../lib/api";
 import GameScreen from "./GameScreen";
 import { IconSpinner } from "./Icons";
 
 const Game = () => {
   const socket = useWebSocketConnection();
 
-  const queryClient = useQueryClient();
-  const { data, isError, isLoading, isSuccess } = useQuery({
-    queryKey: ["config"],
-    queryFn: ({ queryKey }) => fetchFromCache<pong.IGame>(queryKey, queryClient),
-  });
+  const { data, isError, isLoading, isSuccess } = useConfig()
 
   if (isError) return <p className="text-gray-500 dark:text-gray-400">Error occurred</p>;
 
