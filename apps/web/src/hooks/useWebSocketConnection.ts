@@ -23,7 +23,15 @@ export const useWebSocketConnection = () => {
           break;
         case "stateUpdate":
           queryClient.setQueryData([message.content], (oldData: any) => {
-            return Array.isArray(oldData) ? [...oldData, message.stateUpdate] : [];
+            return Array.isArray(oldData)
+              ? [
+                  ...oldData,
+                  {
+                    stateUpdate: message.stateUpdate,
+                    timestamp: Date.now(),
+                  },
+                ]
+              : [];
           });
           break;
       }
