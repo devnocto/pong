@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useWebSocketConnection } from "../hooks/useWebSocketConnection";
 import { PongError } from "../interfaces";
 import { fetchFromCache } from "../lib/api";
-import IconSpinner from "./IconSpinner";
+import { IconSpinner } from "./Icons";
 
 type Props = {
   setModalError: (error: PongError) => void;
