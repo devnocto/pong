@@ -17,12 +17,11 @@ export const useWebSocketConnection = () => {
 
       switch (message.content) {
         case "config":
-          queryClient.invalidateQueries([message.content]);
           queryClient.setQueryData([message.content], message.config);
           break;
         case "stateUpdate":
           queryClient.setQueryData([message.content], (oldData: any) => {
-            return Array.isArray(oldData) ? oldData.push(message.stateUpdate) : [oldData];
+            return Array.isArray(oldData) ? [...oldData, message.stateUpdate] : [];
           });
           break;
       }
