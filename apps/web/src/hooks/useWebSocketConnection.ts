@@ -2,13 +2,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { pong } from "protobuf";
 import { useEffect } from "react";
 
+let socket: WebSocket;
+
 export const useWebSocketConnection = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_WEBSOCKET_URL ?? "";
 
-    const socket = new WebSocket(url);
+    socket = new WebSocket(url);
     socket.binaryType = "arraybuffer";
 
     socket.onmessage = (event) => {
@@ -31,4 +33,6 @@ export const useWebSocketConnection = () => {
       socket.close();
     };
   }, [queryClient]);
+
+  return socket;
 };
