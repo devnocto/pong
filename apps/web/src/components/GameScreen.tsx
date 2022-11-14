@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import Pong from "../lib/game/pong";
-// import useSendUserInput from "../hooks/useSendUserInput";
 import { pong } from "protobuf";
-import { GameConfig } from "../interfaces";
+import { useEffect, useMemo, useRef, useState } from "react";
+import useSendUserInput from "../hooks/useSendUserInput";
+import { useStateUpdate } from "../hooks/useStateUpdate";
+import { GameConfig, StateUpdate } from "../interfaces";
+import Pong from "../lib/game/pong";
 
 type Props = {
   socket: WebSocket;
@@ -13,17 +14,22 @@ const Screen = ({ socket, config }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
+  const { data, isSuccess } = useStateUpdate();
+
   // Configure a new game and memoize
   const game = useMemo(() => new Pong(config as GameConfig), [config]);
 
   // Send key presses by player to server & handle client side prediction
-  // useSendUserInput(socket, game.leftPaddle, game.rightPaddle);
+  useSendUserInput(socket, game.leftPaddle, game.rightPaddle);
 
   // Update game on state changes received from the server
-  // useEffect(() => {
-  //   if (!stateUpdate) return;
-  //   game.updateState(stateUpdate, lastUpdateTime, updateInterval);
-  // }, [game, lastUpdateTime, stateUpdate, updateInterval]);
+  useEffect(() => {
+    if (!isSuccess) return;
+    if (data.length < 2) return;
+    const lastIndex = data.length - 1;
+    const updateInterval = data[lastIndex].timestamp - data[lastIndex - 1].timestamp;
+    game.updateState(data[lastIndex].stateUpdate as StateUpdate, data[lastIndex].timestamp, updateInterval);
+  }, [data, game, isSuccess]);
 
   // Set canvas context on page load
   useEffect(() => {
