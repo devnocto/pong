@@ -6,7 +6,7 @@ import { IconSpinner } from "./Icons";
 const Game = () => {
   const socket = useWebSocketConnection();
 
-  const { data, isError, isLoading, isSuccess } = useConfig()
+  const { data, isError, isLoading, isSuccess } = useConfig();
 
   if (isError) return <p className="text-gray-500 dark:text-gray-400">Error occurred</p>;
 

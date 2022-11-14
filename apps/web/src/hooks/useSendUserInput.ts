@@ -63,7 +63,7 @@ const useSendUserInput = (socket: WebSocket, leftPaddle: Paddle, rightPaddle: Pa
           const message = pong.Message.create({
             userAction: { request: requestNumber, userInput: Keymap.keyup[key] },
           });
-          console.log('stop', key)
+          console.log("stop", key);
           socket.send(pong.Message.encode(message).finish());
           break;
       }
