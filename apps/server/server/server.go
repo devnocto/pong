@@ -67,6 +67,7 @@ func (s *Server) wsHandler(w http.ResponseWriter, r *http.Request) {
 	c.Listen() // Setup client listeners
 }
 
+// healthHandler handles requests to the healthcheck endpoint. Responds with http.StatusOK.
 func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
