@@ -4,10 +4,12 @@ import { Keymap } from "../lib/constants/constants";
 import Paddle from "../lib/game/paddle";
 
 // Handles logic for sending user input to the server for processing
-const useSendUserInput = (socket: WebSocket, leftPaddle: Paddle, rightPaddle: Paddle) => {
+const useSendUserInput = (socket: WebSocket) => {
   // For when the key is pressed down by player
   const sendPlayerInput = useCallback(
     (event: KeyboardEvent) => {
+      if (socket.readyState !== WebSocket.OPEN) return;
+
       const key: string = event.code;
       switch (key) {
         case "KeyW":
@@ -22,11 +24,11 @@ const useSendUserInput = (socket: WebSocket, leftPaddle: Paddle, rightPaddle: Pa
 
           // Handle the entered movement input and get a request number to identify the input
           // for the corresponding paddle
-          if (key === "KeyW" || key === "KeyS") {
-            requestNumber = leftPaddle.clientPrediction(Keymap.keydown[key]);
-          } else if (key === "ArrowUp" || key === "ArrowDown") {
-            requestNumber = rightPaddle.clientPrediction(Keymap.keydown[key]);
-          }
+          // if (key === "KeyW" || key === "KeyS") {
+          //   requestNumber = leftPaddle.clientPrediction(Keymap.keydown[key]);
+          // } else if (key === "ArrowUp" || key === "ArrowDown") {
+          //   requestNumber = rightPaddle.clientPrediction(Keymap.keydown[key]);
+          // }
 
           // Create binary message to send to the server and send it
           const message = pong.Message.create({
@@ -36,12 +38,14 @@ const useSendUserInput = (socket: WebSocket, leftPaddle: Paddle, rightPaddle: Pa
           break;
       }
     },
-    [leftPaddle, rightPaddle, socket]
+    [socket]
   );
 
   // For when the key is released by player
   const sendPlayerInputStop = useCallback(
     (event: KeyboardEvent) => {
+      if (socket.readyState !== WebSocket.OPEN) return;
+
       const key: string = event.code;
       switch (key) {
         case "KeyW":
@@ -53,22 +57,21 @@ const useSendUserInput = (socket: WebSocket, leftPaddle: Paddle, rightPaddle: Pa
 
           // Handle the entered movement input and get a request number to identify the input
           // for the corresponding paddle
-          if (key === "KeyW" || key === "KeyS") {
-            requestNumber = leftPaddle.clientPrediction(Keymap.keyup[key]);
-          } else if (key === "ArrowUp" || key === "ArrowDown") {
-            requestNumber = rightPaddle.clientPrediction(Keymap.keyup[key]);
-          }
+          // if (key === "KeyW" || key === "KeyS") {
+          //   requestNumber = leftPaddle.clientPrediction(Keymap.keyup[key]);
+          // } else if (key === "ArrowUp" || key === "ArrowDown") {
+          //   requestNumber = rightPaddle.clientPrediction(Keymap.keyup[key]);
+          // }
 
           // Create binary message to send to the server and send it
           const message = pong.Message.create({
             userAction: { request: requestNumber, userInput: Keymap.keyup[key] },
           });
-          console.log("stop", key);
           socket.send(pong.Message.encode(message).finish());
           break;
       }
     },
-    [leftPaddle, rightPaddle, socket]
+    [socket]
   );
 
   useEffect(() => {

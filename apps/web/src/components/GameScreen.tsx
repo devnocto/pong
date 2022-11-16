@@ -1,61 +1,47 @@
-import { pong } from "protobuf";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useSendUserInput from "../hooks/useSendUserInput";
-import { useStateUpdate } from "../hooks/useStateUpdate";
-import { GameConfig, StateUpdate } from "../interfaces";
-import Pong from "../lib/game/pong";
+import { drawGame } from "../lib/game";
+import { GameConfig, useGameStateStore } from "../lib/store";
 
 type Props = {
   socket: WebSocket;
-  config: pong.IGame;
+  config: GameConfig;
 };
 
 const Screen = ({ socket, config }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
-  const { data, isSuccess } = useStateUpdate();
-
-  // Configure a new game and memoize
-  const game = useMemo(() => new Pong(config as GameConfig), [config]);
+  // Fetch initial state
+  const stateRef = useRef(useGameStateStore.getState().game);
 
   // Send key presses by player to server & handle client side prediction
-  useSendUserInput(socket, game.leftPaddle, game.rightPaddle);
+  useSendUserInput(socket);
 
-  // Update game on state changes received from the server
-  useEffect(() => {
-    if (!isSuccess) return;
-    if (data.length < 2) return;
-    const lastIndex = data.length - 1;
-    const updateInterval = data[lastIndex].timestamp - data[lastIndex - 1].timestamp;
-    game.updateState(data[lastIndex].stateUpdate as StateUpdate, data[lastIndex].timestamp, updateInterval);
-  }, [data, game, isSuccess]);
+  // Connect to the store on mount, disconnect on unmount, catch state-changes in a reference
+  useEffect(() => useGameStateStore.subscribe((state) => (stateRef.current = state.game)), []);
 
   // Set canvas context on page load
-  useEffect(() => {
-    setCtx(canvasRef.current && canvasRef.current.getContext("2d"));
-  }, []);
+  useEffect(() => setCtx(canvasRef.current && canvasRef.current.getContext("2d")), []);
 
   // Draw the game to canvas
   useEffect(() => {
-    if (!ctx) {
-      return;
-    }
+    if (!ctx) return;
+
     const draw = () => {
       window.requestAnimationFrame(draw);
-      game.draw(ctx);
-      game.update();
+      drawGame(ctx, config, stateRef.current);
     };
 
     draw();
-  }, [ctx, game]);
+  }, [config, ctx]);
 
-  return config.screenSize?.width && config.screenSize.height ? (
+  return (
     <div>
       <canvas
         ref={canvasRef}
-        width={config.screenSize.width}
-        height={config.screenSize.height}
+        width={config.screenWidth}
+        height={config.screenHeight}
         style={{ backgroundColor: "hsl(273deg 22% 8%)" }}
       />
       <div className="text-lg lg:text-xl font-normal text-gray-500 dark:text-gray-400 mt-4">
@@ -80,8 +66,6 @@ const Screen = ({ socket, config }: Props) => {
         </div>
       </div>
     </div>
-  ) : (
-    <p className="font-light text-gray-500 dark:text-gray-400">Invalid screen size</p>
   );
 };
 
