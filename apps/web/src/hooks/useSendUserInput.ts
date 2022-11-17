@@ -1,7 +1,24 @@
 import { pong } from "protobuf";
 import { useCallback, useEffect } from "react";
-import { Keymap } from "../lib/constants/constants";
-import Paddle from "../lib/game/paddle";
+
+// Maps the pressed & released keys with the respective user input
+const Keymap = {
+  keydown: {
+    KeyW: pong.UserInput.LEFT_UP,
+    KeyS: pong.UserInput.LEFT_DOWN,
+    ArrowUp: pong.UserInput.RIGHT_UP,
+    ArrowDown: pong.UserInput.RIGHT_DOWN,
+    KeyM: pong.UserInput.RESET_GAME,
+    KeyP: pong.UserInput.PAUSE_GAME,
+    KeyN: pong.UserInput.START_GAME,
+  },
+  keyup: {
+    KeyW: pong.UserInput.STOP_LEFT_UP,
+    KeyS: pong.UserInput.STOP_LEFT_DOWN,
+    ArrowUp: pong.UserInput.STOP_RIGHT_UP,
+    ArrowDown: pong.UserInput.STOP_RIGHT_DOWN,
+  },
+};
 
 // Handles logic for sending user input to the server for processing
 const useSendUserInput = (socket: WebSocket) => {
@@ -21,14 +38,6 @@ const useSendUserInput = (socket: WebSocket) => {
         case "KeyN":
           // Defaults last request number, that identifies the movement input in a sequence, to 0
           let requestNumber = 0;
-
-          // Handle the entered movement input and get a request number to identify the input
-          // for the corresponding paddle
-          // if (key === "KeyW" || key === "KeyS") {
-          //   requestNumber = leftPaddle.clientPrediction(Keymap.keydown[key]);
-          // } else if (key === "ArrowUp" || key === "ArrowDown") {
-          //   requestNumber = rightPaddle.clientPrediction(Keymap.keydown[key]);
-          // }
 
           // Create binary message to send to the server and send it
           const message = pong.Message.create({
@@ -54,14 +63,6 @@ const useSendUserInput = (socket: WebSocket) => {
         case "ArrowDown":
           // Defaults last request number, that identifies the movement input in a sequence, to 0
           let requestNumber = 0;
-
-          // Handle the entered movement input and get a request number to identify the input
-          // for the corresponding paddle
-          // if (key === "KeyW" || key === "KeyS") {
-          //   requestNumber = leftPaddle.clientPrediction(Keymap.keyup[key]);
-          // } else if (key === "ArrowUp" || key === "ArrowDown") {
-          //   requestNumber = rightPaddle.clientPrediction(Keymap.keyup[key]);
-          // }
 
           // Create binary message to send to the server and send it
           const message = pong.Message.create({
