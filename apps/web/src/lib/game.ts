@@ -23,8 +23,9 @@ export const drawGame = (ctx: CanvasRenderingContext2D, config: GameConfig, stat
   // Clear canvas
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-  // Paddles
   ctx.fillStyle = COLOR;
+
+  // Paddles
   ctx.fillRect(config.leftPaddleX, state.leftPaddleY, config.paddleWidth, config.paddleHeight);
   ctx.fillRect(config.rightPaddleX, state.rightPaddleY, config.paddleWidth, config.paddleHeight);
 
@@ -32,7 +33,6 @@ export const drawGame = (ctx: CanvasRenderingContext2D, config: GameConfig, stat
   ctx.beginPath();
   ctx.arc(state.ballX, state.ballY, config.ballRadius, 0, Math.PI * 2, true);
   ctx.closePath();
-  ctx.fillStyle = COLOR;
   ctx.fill();
 
   // Scores
