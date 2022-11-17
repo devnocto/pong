@@ -15,6 +15,9 @@ const Screen = ({ socket, config }: Props) => {
   // Fetch initial state
   const stateRef = useRef(useGameStateStore.getState().game);
 
+  // State update function from store
+  const updateGame = useGameStateStore((state) => state.updateGame);
+
   // Send key presses by player to server & handle client side prediction
   useSendUserInput(socket);
 
@@ -30,11 +33,12 @@ const Screen = ({ socket, config }: Props) => {
 
     const draw = () => {
       window.requestAnimationFrame(draw);
+      updateGame();
       drawGame(ctx, config, stateRef.current);
     };
 
     draw();
-  }, [config, ctx]);
+  }, [config, ctx, updateGame]);
 
   return (
     <div>
