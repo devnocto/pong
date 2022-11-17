@@ -12,15 +12,11 @@ export type GameConfig = {
 };
 
 export type GameUpdate = {
-  ballVx: number;
-  ballVy: number;
   ballX: number;
   ballY: number;
   gameState: pong.GameState;
-  leftPaddleVy: number;
   leftPaddleY: number;
   leftScore: number;
-  rightPaddleVy: number;
   rightPaddleY: number;
   rightScore: number;
 };
@@ -37,15 +33,11 @@ type GameState = {
 };
 
 const getDefaultGameState = () => ({
-  ballVx: 0,
-  ballVy: 0,
   ballX: 0,
   ballY: 0,
   gameState: pong.GameState.MENU_STATE,
-  leftPaddleVy: 0,
   leftPaddleY: 0,
   leftScore: 0,
-  rightPaddleVy: 0,
   rightPaddleY: 0,
   rightScore: 0,
 });
@@ -87,20 +79,13 @@ export const useGameStateStore = create<GameState>()((set, get) => ({
     if (positionDiff < 50) {
       current.ballX = current.ballX + elapsed * (xDiff / interval);
       current.ballY = current.ballY + elapsed * ((target.ballY - current.ballY) / interval);
-      current.ballVx = current.ballVx + elapsed * ((target.ballVx - current.ballVx) / interval);
-      current.ballVy = current.ballVy + elapsed * ((target.ballVy - current.ballVy) / interval);
     } else {
       current.ballX = target.ballX;
       current.ballY = target.ballY;
-      current.ballVx = target.ballVx;
-      current.ballVy = target.ballVy;
     }
 
     // Paddles - with interpolation
-    current.leftPaddleVy = current.leftPaddleVy + elapsed * ((target.leftPaddleVy - current.leftPaddleVy) / interval);
     current.leftPaddleY = current.leftPaddleY + elapsed * ((target.leftPaddleY - current.leftPaddleY) / interval);
-    current.rightPaddleVy =
-      current.rightPaddleVy + elapsed * ((target.rightPaddleVy - current.rightPaddleVy) / interval);
     current.rightPaddleY = current.rightPaddleY + elapsed * ((target.rightPaddleY - current.rightPaddleY) / interval);
 
     set({ game: current });

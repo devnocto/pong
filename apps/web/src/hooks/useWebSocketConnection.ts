@@ -32,15 +32,11 @@ export const useWebSocketConnection = () => {
           break;
         case "stateUpdate":
           updateWithServerState({
-            ballVx: message.stateUpdate?.ball?.velocity?.vx ?? 0,
-            ballVy: message.stateUpdate?.ball?.velocity?.vy ?? 0,
             ballX: message.stateUpdate?.ball?.position?.x ?? 0,
             ballY: message.stateUpdate?.ball?.position?.y ?? 0,
             gameState: message.stateUpdate?.state ?? 0,
-            leftPaddleVy: message.stateUpdate?.leftPaddle?.state?.velocity?.vy ?? 0,
             leftPaddleY: message.stateUpdate?.leftPaddle?.state?.position?.y ?? 0,
             leftScore: message.stateUpdate?.score?.leftScore?.value ?? 0,
-            rightPaddleVy: message.stateUpdate?.rightPaddle?.state?.velocity?.vy ?? 0,
             rightPaddleY: message.stateUpdate?.rightPaddle?.state?.position?.y ?? 0,
             rightScore: message.stateUpdate?.score?.rightScore?.value ?? 0,
           });
