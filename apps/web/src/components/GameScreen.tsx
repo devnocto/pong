@@ -1,11 +1,12 @@
+import { pong } from "protobuf";
 import { useEffect, useRef, useState } from "react";
 import useSendUserInput from "../hooks/useSendUserInput";
 import { drawGame } from "../lib/game";
-import { GameConfig, useGameStateStore } from "../lib/store";
+import { useGameStore } from "../lib/store";
 
 type Props = {
   socket: WebSocket;
-  config: GameConfig;
+  config: pong.GameConfig;
 };
 
 const Screen = ({ socket, config }: Props) => {
@@ -13,16 +14,16 @@ const Screen = ({ socket, config }: Props) => {
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
 
   // Fetch initial state
-  const stateRef = useRef(useGameStateStore.getState().game);
+  const stateRef = useRef(useGameStore.getState().game);
 
   // State update function from store
-  const updateGame = useGameStateStore((state) => state.updateGame);
+  const updateGame = useGameStore((state) => state.updateGame);
 
   // Send key presses by player to server & handle client side prediction
   useSendUserInput(socket);
 
   // Connect to the store on mount, disconnect on unmount, catch state-changes in a reference
-  useEffect(() => useGameStateStore.subscribe((state) => (stateRef.current = state.game)), []);
+  useEffect(() => useGameStore.subscribe((state) => (stateRef.current = state.game)), []);
 
   // Set canvas context on page load
   useEffect(() => setCtx(canvasRef.current && canvasRef.current.getContext("2d")), []);

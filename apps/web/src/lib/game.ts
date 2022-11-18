@@ -1,21 +1,10 @@
 import { pong } from "protobuf";
-import { GameConfig } from "./store";
 
 const COLOR = "white";
 const TEXT_GAP = 100;
 
-type DrawState = {
-  ballX: number;
-  ballY: number;
-  gameState: pong.GameState;
-  leftPaddleY: number;
-  leftScore: number;
-  rightPaddleY: number;
-  rightScore: number;
-};
-
 // Draws the game at a given state using the given config.
-export const drawGame = (ctx: CanvasRenderingContext2D, config: GameConfig, state: DrawState) => {
+export const drawGame = (ctx: CanvasRenderingContext2D, config: pong.GameConfig, state: pong.StateUpdate) => {
   // Values
   const halfScreenWidth = config.screenWidth / 2;
   const halfScreenHeight = config.screenHeight / 2;

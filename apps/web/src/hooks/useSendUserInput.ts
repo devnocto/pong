@@ -40,10 +40,10 @@ const useSendUserInput = (socket: WebSocket) => {
           let requestNumber = 0;
 
           // Create binary message to send to the server and send it
-          const message = pong.Message.create({
+          const message = pong.Response.create({
             userAction: { request: requestNumber, userInput: Keymap.keydown[key] },
           });
-          socket.send(pong.Message.encode(message).finish());
+          socket.send(pong.Response.encode(message).finish());
           break;
       }
     },
@@ -65,10 +65,10 @@ const useSendUserInput = (socket: WebSocket) => {
           let requestNumber = 0;
 
           // Create binary message to send to the server and send it
-          const message = pong.Message.create({
+          const message = pong.Response.create({
             userAction: { request: requestNumber, userInput: Keymap.keyup[key] },
           });
-          socket.send(pong.Message.encode(message).finish());
+          socket.send(pong.Response.encode(message).finish());
           break;
       }
     },
