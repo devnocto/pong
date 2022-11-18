@@ -1,58 +1,40 @@
 package pong
 
-import "vastnebula.com/pong/pb"
+const PaddleBottomLimitY = InitScreenHeight - InitPaddleHeight
 
-// Paddle is a paddle in the pong game.
-type Paddle struct {
-	Point
-	Velocity
-	Size
+// paddle is a paddle in the pong game.
+type paddle struct {
+	Y  int32
+	Vy int32
 	Ay int32
 }
 
-// ToProto converts the Paddle struct to a protocol buffer struct.
-func (p *Paddle) ToProto() *pb.Paddle {
-	return &pb.Paddle{
-		Point:    p.Point.ToProto(),
-		Velocity: p.Velocity.ToProto(),
-		Size:     p.Size.ToProto(),
-		Ay:       p.Ay,
-	}
-}
-
-const (
-	InitPaddleGap          = 35.0
-	InitPaddleWidth        = 10.0
-	InitPaddleHeight       = 80.0
-	InitPaddleAcceleration = 8.0
-)
-
-// MoveUp changes the velocity in the y axis so that the paddle moves up.
-func (p *Paddle) MoveUp() {
+// moveUp changes the velocity in the y axis so that the paddle moves up.
+func (p *paddle) moveUp() {
 	p.Vy -= p.Ay
 }
 
-// MoveDown changes the velocity in the y axis so that the paddle moves down.
-func (p *Paddle) MoveDown() {
+// moveDown changes the velocity in the y axis so that the paddle moves down.
+func (p *paddle) moveDown() {
 	p.Vy += p.Ay
 }
 
-// StopUp removes the velocity in the y axis so that the paddle does not move up.
-func (p *Paddle) StopUp() {
+// stopUp removes the velocity in the y axis so that the paddle does not move up.
+func (p *paddle) stopUp() {
 	if p.Vy < 0 {
 		p.Vy = 0
 	}
 }
 
-// StopDown removes the velocity in the y axis so that the paddle does not move down.
-func (p *Paddle) StopDown() {
+// stopDown removes the velocity in the y axis so that the paddle does not move down.
+func (p *paddle) stopDown() {
 	if p.Vy > 0 {
 		p.Vy = 0
 	}
 }
 
-// Update changes the state of the paddle. It also has collision detection logic for the paddle.
-func (p *Paddle) Update() {
+// update changes the state of the paddle. It also has collision detection logic for the paddle.
+func (p *paddle) update() {
 	// Add velocity to paddle
 	p.Y += p.Vy
 
@@ -64,8 +46,8 @@ func (p *Paddle) Update() {
 	}
 
 	// Bottom boundary
-	if p.Y+p.Vy > InitScreenHeight-p.Height {
+	if p.Y+p.Vy > PaddleBottomLimitY {
 		p.Vy = 0
-		p.Y = InitScreenHeight - p.Height
+		p.Y = PaddleBottomLimitY
 	}
 }

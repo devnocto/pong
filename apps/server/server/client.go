@@ -82,7 +82,7 @@ func (c *Client) read() {
 // handleIncomingMessage parses the protocol buffer encoded message, in.
 func (c *Client) handleIncomingMessage(in *[]byte) {
 	// Parse message to Message as defined in the protocol buffer file pong.proto
-	message := &pb.Message{}
+	message := &pb.Response{}
 	if err := proto.Unmarshal(*in, message); err != nil {
 		_ = fmt.Errorf("failed to unmarshal message")
 	}
@@ -90,7 +90,7 @@ func (c *Client) handleIncomingMessage(in *[]byte) {
 	// Only handle valid input messages from the client.
 	// UserAction is as defined in pong.proto using protocol buffers.
 	switch content := message.Content.(type) {
-	case *pb.Message_UserAction:
+	case *pb.Response_UserAction:
 		c.server.input <- content.UserAction
 	}
 }

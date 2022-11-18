@@ -1,36 +1,24 @@
 package pong
 
-import (
-	"math/rand"
+import "math/rand"
 
-	"vastnebula.com/pong/pb"
-)
-
-// Ball holds the data for a ball in the pong game.
-type Ball struct {
-	Point
-	Velocity
-	Radius    int32
+// ball holds the data for a ball in the pong game.
+type ball struct {
+	X         int32
+	Y         int32
+	Vx        int32
+	Vy        int32
 	direction int32
-	saved     Velocity
+	savedVx   int32
+	savedVy   int32
 }
 
-// NewBall creates a new ball at the center of the screen with a direction to the right.
-func NewBall() *Ball {
-	s := Size{Width: InitScreenWidth, Height: InitScreenHeight}
-	return &Ball{
-		Point:     s.Center(),
-		Radius:    InitBallRadius,
-		direction: 1,
-	}
-}
-
-// ToProto converts the Ball struct to a protocol buffer struct.
-func (b *Ball) ToProto() *pb.Ball {
-	return &pb.Ball{
-		Point:    b.Point.ToProto(),
-		Velocity: b.Velocity.ToProto(),
-		Radius:   b.Radius,
+// newBall creates a new ball at the center of the screen.
+func newBall() *ball {
+	return &ball{
+		X:         InitScreenWidth / 2,
+		Y:         InitScreenHeight / 2,
+		direction: InitBallDirection,
 	}
 }
 
@@ -42,20 +30,17 @@ type Edge struct {
 	Right  int32
 }
 
-const InitBallRadius = 8
-const MaxScore = 10
-
-// Update changes the state of the ball. It also has collision detection logic for the ball.
-func (b *Ball) Update(leftPaddle *Paddle, rightPaddle *Paddle, leftScore *Score, rightScore *Score) {
+// update changes the state of the ball. It also has collision detection logic for the ball.
+func (b *ball) update(leftPaddle *paddle, rightPaddle *paddle, leftScore *score, rightScore *score) {
 	// Add velocity to ball
 	b.X += b.Vx
 	b.Y += b.Vy
 
 	bEdge := Edge{
-		Top:    b.Y - b.Radius + b.Vy,
-		Bottom: b.Y + b.Radius + b.Vy,
-		Left:   b.X - b.Radius + b.Vx,
-		Right:  b.X + b.Radius + b.Vx,
+		Top:    b.Y - InitBallRadius + b.Vy,
+		Bottom: b.Y + InitBallRadius + b.Vy,
+		Left:   b.X - InitBallRadius + b.Vx,
+		Right:  b.X + InitBallRadius + b.Vx,
 	}
 
 	// Boundaries
@@ -67,33 +52,33 @@ func (b *Ball) Update(leftPaddle *Paddle, rightPaddle *Paddle, leftScore *Score,
 	// Left and right boundaries
 	if bEdge.Right > InitScreenWidth || bEdge.Left < 0 {
 		// Update score
-		if bEdge.Right > rightPaddle.X {
-			leftScore.Increment()
+		if bEdge.Right > InitRightPaddleX {
+			leftScore.increment()
 		} else {
-			rightScore.Increment()
+			rightScore.increment()
 		}
-		b.ResetPosition()
-		b.AddMotion()
+		b.resetPosition()
+		b.addMotion()
 		b.switchDirection()
 	}
 
 	// Right paddle
-	if bEdge.Right > rightPaddle.X && bEdge.Left < rightPaddle.X+rightPaddle.Width {
-		if bEdge.Bottom > rightPaddle.Y && bEdge.Top < rightPaddle.Y+rightPaddle.Height {
+	if bEdge.Right > InitRightPaddleX && bEdge.Left < InitRightPaddleX+InitPaddleWidth {
+		if bEdge.Bottom > rightPaddle.Y && bEdge.Top < rightPaddle.Y+InitPaddleHeight {
 			b.Vx = -b.Vx // Ball bounces off
 		}
 	}
 
 	// Left paddle
-	if bEdge.Left < leftPaddle.X+leftPaddle.Width && bEdge.Right > leftPaddle.X {
-		if bEdge.Bottom > leftPaddle.Y && bEdge.Top < leftPaddle.Y+leftPaddle.Height {
+	if bEdge.Left < InitLeftPaddleX+InitPaddleWidth && bEdge.Right > InitLeftPaddleX {
+		if bEdge.Bottom > leftPaddle.Y && bEdge.Top < leftPaddle.Y+InitPaddleHeight {
 			b.Vx = -b.Vx // Ball bounces off
 		}
 	}
 }
 
-// ResetPosition sets the position of the ball to the center of the screen and the velocity to 0.
-func (b *Ball) ResetPosition() {
+// resetPosition sets the position of the ball to the center of the screen and the velocity to 0.
+func (b *ball) resetPosition() {
 	b.Vx = 0
 	b.Vy = 0
 
@@ -102,8 +87,8 @@ func (b *Ball) ResetPosition() {
 	b.Y = InitScreenHeight / 2
 }
 
-// AddMotion gives the ball velocity in both the x and y direction.
-func (b *Ball) AddMotion() {
+// addMotion gives the ball velocity in both the x and y direction.
+func (b *ball) addMotion() {
 	b.Vx = 5
 
 	// Random velocity between min and max
@@ -117,22 +102,24 @@ func (b *Ball) AddMotion() {
 	}
 }
 
-// PauseMotion saves the current velocity of the ball and sets the velocity to 0.
-func (b *Ball) PauseMotion() {
-	b.saved = b.Velocity
-	b.Velocity.Vx = 0
-	b.Velocity.Vy = 0
+// pauseMotion saves the current velocity of the ball and sets the velocity to 0.
+func (b *ball) pauseMotion() {
+	b.savedVx = b.Vx
+	b.savedVy = b.Vy
+	b.Vx = 0
+	b.Vy = 0
 }
 
-// ResumeMotion restores the current velocity of the ball from the saved velocity.
-func (b *Ball) ResumeMotion() {
-	b.Velocity = b.saved
+// resumeMotion restores the current velocity of the ball from the saved velocity.
+func (b *ball) resumeMotion() {
+	b.Vx = b.savedVx
+	b.Vy = b.savedVy
 }
 
 // switchDirection switches the direction of the ball to either 1 (right) or -1 (left).
 // The direction switches to the opposite of the currently set direction.
 // The initial Vx of the ball must be positive when using this function.
-func (b *Ball) switchDirection() {
+func (b *ball) switchDirection() {
 	b.direction = -b.direction
 	b.Vx *= b.direction
 }

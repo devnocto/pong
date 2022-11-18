@@ -1,20 +1,11 @@
 package pong
 
-import "vastnebula.com/pong/pb"
-
-// Score is a score pong.
-type Score struct {
+// score is a score pong.
+type score struct {
 	Value uint32
 }
 
-// ToProto converts the Score struct to a protocol buffer struct.
-func (s *Score) ToProto() *pb.Score {
-	return &pb.Score{
-		Value: s.Value,
-	}
-}
-
-// Increment adds 1 to the score.
-func (s *Score) Increment() {
+// increment adds 1 to the score.
+func (s *score) increment() {
 	s.Value++
 }

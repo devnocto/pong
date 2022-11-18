@@ -6,147 +6,139 @@ import (
 	"vastnebula.com/pong/pb"
 )
 
+const (
+	InitScreenWidth        = 800
+	InitScreenHeight       = 480
+	InitBallRadius         = 8
+	InitBallDirection      = 1 // 1 is to the right, -1 is to the left
+	MaxScore               = 10
+	InitPaddleGap          = 35.0
+	InitPaddleWidth        = 10.0
+	InitPaddleHeight       = 80.0
+	InitPaddleAcceleration = 8.0
+	InitLeftPaddleX        = InitPaddleGap
+	InitRightPaddleX       = InitScreenWidth - InitPaddleGap - InitPaddleWidth
+	InitPaddleY            = InitScreenHeight/2 - InitPaddleHeight/2
+)
+
 // Game is the pong game.
 type Game struct {
-	State                    pb.GameState
-	Ball                     *Ball
-	LeftPaddle               *Paddle
-	RightPaddle              *Paddle
-	LeftScore                *Score
-	RightScore               *Score
-	ScreenSize               Size
-	LastProcessedLeftPaddle  int32
-	LastProcessedRightPaddle int32
-}
-
-// ToProto converts the Game struct to a protocol buffer struct.
-func (g *Game) ToProto() *pb.Game {
-	return &pb.Game{
-		State:       g.State,
-		Ball:        g.Ball.ToProto(),
-		LeftPaddle:  g.LeftPaddle.ToProto(),
-		RightPaddle: g.RightPaddle.ToProto(),
-		LeftScore:   g.LeftScore.ToProto(),
-		RightScore:  g.RightScore.ToProto(),
-		ScreenSize:  g.ScreenSize.ToProto(),
-	}
+	config                   pb.GameConfig
+	state                    pb.GameState
+	ball                     *ball
+	leftPaddle               *paddle
+	rightPaddle              *paddle
+	leftScore                *score
+	rightScore               *score
+	lastProcessedLeftPaddle  int32
+	lastProcessedRightPaddle int32
 }
 
 // NewGame creates a new game with the default configuration.
 func NewGame() *Game {
 	g := &Game{
-		State: pb.GameState_MENU_STATE,
-		Ball:  NewBall(),
-		LeftPaddle: &Paddle{
-			Point: Point{X: InitPaddleGap, Y: InitScreenHeight/2 - InitPaddleHeight/2},
-			Size:  Size{Width: InitPaddleWidth, Height: InitPaddleHeight},
-			Ay:    InitPaddleAcceleration,
+		config: pb.GameConfig{
+			BallRadius:   InitBallRadius,
+			PaddleHeight: InitPaddleHeight,
+			PaddleWidth:  InitPaddleWidth,
+			LeftPaddleX:  InitLeftPaddleX,
+			RightPaddleX: InitRightPaddleX,
+			ScreenWidth:  InitScreenWidth,
+			ScreenHeight: InitScreenHeight,
 		},
-		RightPaddle: &Paddle{
-			Point: Point{X: InitScreenWidth - InitPaddleGap - InitPaddleWidth, Y: InitScreenHeight/2 - InitPaddleHeight/2},
-			Size:  Size{Width: InitPaddleWidth, Height: InitPaddleHeight},
-			Ay:    InitPaddleAcceleration,
+		state: pb.GameState_MENU_STATE,
+		ball:  newBall(),
+		leftPaddle: &paddle{
+			Y:  InitPaddleY,
+			Ay: InitPaddleAcceleration,
 		},
-		LeftScore:  &Score{},
-		RightScore: &Score{},
-		ScreenSize: Size{Width: InitScreenWidth, Height: InitScreenHeight},
+		rightPaddle: &paddle{
+			Y:  InitPaddleY,
+			Ay: InitPaddleAcceleration,
+		},
+		leftScore:  &score{},
+		rightScore: &score{},
 	}
-	g.Ball.ResetPosition()
+	g.ball.resetPosition()
 	return g
-}
-
-// Config returns the protocol buffer struct of the game as a protocol buffer message struct.
-// This is used to send the configuration to the client after it is encoded using proto.Marshal().
-func (g *Game) Config() *pb.Message {
-	return &pb.Message{Content: &pb.Message_Config{Config: g.ToProto()}}
 }
 
 // StateUpdate returns the protocol buffer message struct of the game state, position of objects and the scores.
 // This is used to send state updates to the client after it is encoded using proto.Marshal().
-func (g *Game) StateUpdate() *pb.Message {
-	return &pb.Message{
-		Content: &pb.Message_StateUpdate{
+func (g *Game) StateUpdate() *pb.Response {
+	return &pb.Response{
+		Content: &pb.Response_StateUpdate{
 			StateUpdate: &pb.StateUpdate{
-				State: g.State,
-				Ball: &pb.ObjectState{
-					Position: g.Ball.Point.ToProto(),
-					Velocity: g.Ball.Velocity.ToProto(),
-				},
-				LeftPaddle: &pb.PlayerState{
-					LastRequest: g.LastProcessedLeftPaddle,
-					State: &pb.ObjectState{
-						Position: g.LeftPaddle.Point.ToProto(),
-						Velocity: g.LeftPaddle.Velocity.ToProto(),
-					},
-				},
-				RightPaddle: &pb.PlayerState{
-					LastRequest: g.LastProcessedRightPaddle,
-					State: &pb.ObjectState{
-						Position: g.RightPaddle.Point.ToProto(),
-						Velocity: g.RightPaddle.Velocity.ToProto(),
-					},
-				},
-				Score: &pb.ScoreUpdate{
-					LeftScore:  g.LeftScore.ToProto(),
-					RightScore: g.RightScore.ToProto(),
-				},
+				GameState:    g.state,
+				BallX:        g.ball.X,
+				BallY:        g.ball.Y,
+				LeftPaddleY:  g.leftPaddle.Y,
+				RightPaddleY: g.rightPaddle.Y,
+				LeftScore:    g.leftScore.Value,
+				RightScore:   g.rightScore.Value,
 			},
 		},
 	}
 }
 
+// StateUpdate returns the protocol buffer message struct of the game state, position of objects and the scores.
+// This is used to send state updates to the client after it is encoded using proto.Marshal().
+func (g *Game) Config() *pb.Response {
+	return &pb.Response{Content: &pb.Response_Config{Config: &g.config}}
+}
+
 // ProcessInput performs actions based on the received user action .
 func (g *Game) ProcessInput(action *pb.UserAction) {
 	// If the game is in the play state then perform movement operations.
-	if g.State == pb.GameState_PLAY_STATE {
+	if g.state == pb.GameState_PLAY_STATE {
 		switch action.UserInput {
 		// Left Paddle
 		case pb.UserInput_LEFT_UP:
-			g.LeftPaddle.MoveUp()
-			g.LastProcessedLeftPaddle = action.Request
+			g.leftPaddle.moveUp()
+			g.lastProcessedLeftPaddle = action.Request
 		case pb.UserInput_LEFT_DOWN:
-			g.LeftPaddle.MoveDown()
-			g.LastProcessedLeftPaddle = action.Request
+			g.leftPaddle.moveDown()
+			g.lastProcessedLeftPaddle = action.Request
 		case pb.UserInput_STOP_LEFT_UP:
-			g.LeftPaddle.StopUp()
-			g.LastProcessedLeftPaddle = action.Request
+			g.leftPaddle.stopUp()
+			g.lastProcessedLeftPaddle = action.Request
 		case pb.UserInput_STOP_LEFT_DOWN:
-			g.LeftPaddle.StopDown()
-			g.LastProcessedLeftPaddle = action.Request
+			g.leftPaddle.stopDown()
+			g.lastProcessedLeftPaddle = action.Request
 
 			// Right Paddle
 		case pb.UserInput_RIGHT_UP:
-			g.RightPaddle.MoveUp()
-			g.LastProcessedRightPaddle = action.Request
+			g.rightPaddle.moveUp()
+			g.lastProcessedRightPaddle = action.Request
 		case pb.UserInput_RIGHT_DOWN:
-			g.RightPaddle.MoveDown()
-			g.LastProcessedRightPaddle = action.Request
+			g.rightPaddle.moveDown()
+			g.lastProcessedRightPaddle = action.Request
 		case pb.UserInput_STOP_RIGHT_UP:
-			g.RightPaddle.StopUp()
-			g.LastProcessedRightPaddle = action.Request
+			g.rightPaddle.stopUp()
+			g.lastProcessedRightPaddle = action.Request
 		case pb.UserInput_STOP_RIGHT_DOWN:
-			g.RightPaddle.StopDown()
-			g.LastProcessedRightPaddle = action.Request
+			g.rightPaddle.stopDown()
+			g.lastProcessedRightPaddle = action.Request
 		}
 	}
 
 	// Game State operations.
 	switch action.UserInput {
 	case pb.UserInput_START_GAME:
-		if g.State == pb.GameState_MENU_STATE {
-			g.State = pb.GameState_PLAY_STATE
-			g.Ball.AddMotion()
+		if g.state == pb.GameState_MENU_STATE {
+			g.state = pb.GameState_PLAY_STATE
+			g.ball.addMotion()
 		}
 	case pb.UserInput_PAUSE_GAME:
-		if g.State == pb.GameState_PLAY_STATE {
-			g.State = pb.GameState_PAUSE_STATE
-			g.Ball.PauseMotion()
-		} else if g.State == pb.GameState_PAUSE_STATE {
-			g.State = pb.GameState_PLAY_STATE
-			g.Ball.ResumeMotion()
+		if g.state == pb.GameState_PLAY_STATE {
+			g.state = pb.GameState_PAUSE_STATE
+			g.ball.pauseMotion()
+		} else if g.state == pb.GameState_PAUSE_STATE {
+			g.state = pb.GameState_PLAY_STATE
+			g.ball.resumeMotion()
 		}
 	case pb.UserInput_RESET_GAME:
-		if g.State == pb.GameState_STOP_STATE {
+		if g.state == pb.GameState_STOP_STATE {
 			g.Reset()
 		}
 	}
@@ -155,13 +147,13 @@ func (g *Game) ProcessInput(action *pb.UserAction) {
 // Update performs updates on the items in the game.
 // It detects when the max score is reached and changes the game to the stop state.
 func (g *Game) Update() {
-	if g.State == pb.GameState_PLAY_STATE {
-		g.LeftPaddle.Update()
-		g.RightPaddle.Update()
-		g.Ball.Update(g.LeftPaddle, g.RightPaddle, g.LeftScore, g.RightScore)
-		if g.LeftScore.Value >= MaxScore || g.RightScore.Value >= MaxScore {
-			g.State = pb.GameState_STOP_STATE
-			g.Ball.PauseMotion()
+	if g.state == pb.GameState_PLAY_STATE {
+		g.leftPaddle.update()
+		g.rightPaddle.update()
+		g.ball.update(g.leftPaddle, g.rightPaddle, g.leftScore, g.rightScore)
+		if g.leftScore.Value >= MaxScore || g.rightScore.Value >= MaxScore {
+			g.state = pb.GameState_STOP_STATE
+			g.ball.pauseMotion()
 		}
 	}
 }
@@ -194,11 +186,11 @@ func (g *Game) Run(input <-chan *pb.UserAction, broadcast chan<- bool) {
 // Reset returns the state of the game to the menu state, the positions of the objects
 // to the starting positions and sets the scores to 0.
 func (g *Game) Reset() {
-	g.State = pb.GameState_MENU_STATE
-	g.Ball = NewBall()
-	g.LeftPaddle.Point = Point{X: InitPaddleGap, Y: InitScreenHeight/2 - InitPaddleHeight/2}
-	g.RightPaddle.Point = Point{X: InitScreenWidth - InitPaddleGap - InitPaddleWidth, Y: InitScreenHeight/2 - InitPaddleHeight/2}
-	g.LeftScore.Value = 0
-	g.RightScore.Value = 0
-	g.Ball.ResetPosition()
+	g.state = pb.GameState_MENU_STATE
+	g.ball = newBall()
+	g.leftPaddle.Y = InitPaddleY
+	g.rightPaddle.Y = InitPaddleY
+	g.leftScore.Value = 0
+	g.rightScore.Value = 0
+	g.ball.resetPosition()
 }
