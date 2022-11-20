@@ -67,8 +67,15 @@ func (s *Server) wsHandler(w http.ResponseWriter, r *http.Request) {
 	c.Listen() // Setup client listeners
 }
 
+// enableCors is a quick function to enable CORS for GET requests.
+// This function does not handle pre-flight OPTIONS requests.
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", config.Env("ORIGIN"))
+}
+
 // healthHandler handles requests to the healthcheck endpoint. Responds with http.StatusOK.
 func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	w.WriteHeader(http.StatusOK)
 }
 
