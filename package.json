@@ -6,7 +6,9 @@
     "proto": "pnpm --filter 'protobuf' run compile",
     "dev": "pnpm -r --parallel --filter './apps/*' run dev",
     "dev-server": "pnpm --filter 'server' run dev",
-    "dev-web": "pnpm --filter 'web' run dev"
+    "dev-web": "pnpm --filter 'web' run dev",
+    "build-web": "pnpm --filter 'web' run build",
+    "build-server": "pnpm --filter 'server' run build"
   },
   "devDependencies": {
     "eslint": "^8.27.0",

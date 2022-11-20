@@ -2,6 +2,7 @@
   "name": "server",
   "private": true,
   "scripts": {
-    "dev": "go run ."
+    "dev": "go run .",
+    "build": "go build -o app"
   }
 }
